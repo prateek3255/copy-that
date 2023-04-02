@@ -1,0 +1,122 @@
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600&family=Roboto:wght@400;500;700&display=swap"
+    rel="stylesheet"
+  />
+</head>
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    background-color: var(--figma-color-bg);
+    color: var(--figma-color-text);
+    margin: 0px;
+  }
+  label {
+    font-family: "Roboto";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 11px;
+    line-height: 13px;
+    color: var(--figma-color-text);
+  }
+  .input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .input-container:not(:first-child) {
+    margin-top: 12px;
+  }
+  textarea {
+    width: 100%;
+    border: 1px solid #959595;
+    border-radius: 4px;
+    padding: 8px;
+  }
+  select {
+    width: 100%;
+    border: 1px solid #959595;
+    border-radius: 4px;
+    padding: 8px;
+    border-right: 8px solid transparent;
+  }
+
+  option:checked {
+    font-family: "Roboto";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 14px;
+    color: var(--figma-color-text);
+  }
+  textarea::placeholder {
+    font-family: "Roboto";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 14px;
+  }
+  .btn {
+    font-family: "Roboto";
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 14px;
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: none;
+  }
+  .btn-primary {
+    background-color: var(--figma-color-bg-brand);
+    color: var(--figma-color-primary-foreground);
+  }
+  main {
+    padding: 16px;
+    width: 100%;
+  }
+  textarea:focus,
+  select:focus {
+    outline: 2px solid var(--figma-color-border-selected);
+  }
+</style>
+
+<main>
+  <div class="input-container">
+    <label for="text"> Text here </label>
+    <textarea
+      id="text"
+      name="text"
+      rows="4"
+      placeholder="Write/paste text or select a text on the canvas"
+    ></textarea>
+  </div>
+
+  <div class="input-container">
+    <label for="type">Purpose</label>
+    <select id="type">
+      <option selected value="proofread">Proofread</option>
+      <option value="Make it longer">Make it longer</option>
+      <option value="Make it shorter">Make it shorter</option>
+    </select>
+  </div>
+  <button class="btn btn-primary" style="margin-top: 24px">Generate</button>
+</main>
+<script>
+  document.getElementById("create").onclick = () => {
+    const textbox = document.getElementById("count");
+    const count = parseInt(textbox.value, 10);
+    parent.postMessage(
+      { pluginMessage: { type: "create-rectangles", count } },
+      "*"
+    );
+  };
+
+  document.getElementById("cancel").onclick = () => {
+    parent.postMessage({ pluginMessage: { type: "cancel" } }, "*");
+  };
+</script>
