@@ -37,6 +37,11 @@
     border: 1px solid #959595;
     border-radius: 4px;
     padding: 8px;
+    font-family: "Roboto";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 14px;
   }
   select {
     width: 100%;
@@ -75,6 +80,11 @@
     background-color: var(--figma-color-bg-brand);
     color: var(--figma-color-primary-foreground);
   }
+  .btn:disabled {
+    background-color: var(--figma-color-bg-disabled);
+    color: var(--figma-color-text-disabled);
+    cursor: not-allowed;
+  }
   main {
     padding: 16px;
     width: 100%;
@@ -82,6 +92,27 @@
   textarea:focus,
   select:focus {
     outline: 2px solid var(--figma-color-border-selected);
+  }
+  .suggestion {
+    font-family: "Roboto";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 14px;
+    color: var(--figma-color-text);
+    border: none;
+    background-color: transparent;
+    border: 1px solid #d3d3d3;
+    border-radius: 4px;
+    padding: 8px;
+    color: var(--figma-color-text-secondary);
+    cursor: pointer;
+    text-align: left;
+  }
+  .suggestion[data-selected="true"] {
+    background-color: var(--figma-color-bg-component-tertiary);
+    color: var(--figma-color-text-tertiary-hover);
+    border-color: var(--figma-color-border-component);
   }
 </style>
 
@@ -97,26 +128,78 @@
   </div>
 
   <div class="input-container">
-    <label for="type">Purpose</label>
-    <select id="type">
-      <option selected value="proofread">Proofread</option>
+    <label for="purpose">Purpose</label>
+    <select id="purpose">
+      <option selected value="Proofread">Proofread</option>
       <option value="Make it longer">Make it longer</option>
       <option value="Make it shorter">Make it shorter</option>
     </select>
   </div>
-  <button class="btn btn-primary" style="margin-top: 24px">Generate</button>
+
+  <div class="input-container" id="suggestions"></div>
+  <button
+    class="btn btn-primary"
+    id="generate"
+    data-type="generate"
+    style="margin-top: 12px"
+  >
+    Generate
+  </button>
 </main>
 <script>
-  document.getElementById("create").onclick = () => {
-    const textbox = document.getElementById("count");
-    const count = parseInt(textbox.value, 10);
-    parent.postMessage(
-      { pluginMessage: { type: "create-rectangles", count } },
-      "*"
-    );
+  document.getElementById("generate").onclick = () => {
+    const generateButton = document.getElementById("generate");
+    if (generateButton.dataset.type === "generate") {
+      const text = document.getElementById("text").value;
+      const purpose = document.getElementById("purpose").value;
+      generateButton.disabled = true;
+      parent.postMessage(
+        { pluginMessage: { type: "generate-suggestions", text, purpose } },
+        "*"
+      );
+    } else {
+      const selectedSuggestion = document.querySelector(
+        ".suggestion[data-selected='true']"
+      );
+      const text = selectedSuggestion.innerText;
+      parent.postMessage(
+        { pluginMessage: { type: "replace-text", text } },
+        "*"
+      );
+    }
   };
 
-  document.getElementById("cancel").onclick = () => {
-    parent.postMessage({ pluginMessage: { type: "cancel" } }, "*");
+  function selectSuggestion(index) {
+    const suggestions = document.getElementsByClassName("suggestion");
+    for (let i = 0; i < suggestions.length; i++) {
+      suggestions[i].dataset.selected = false;
+    }
+    suggestions[index].dataset.selected = true;
+  }
+
+  window.onmessage = (event) => {
+    const { type } = event.data.pluginMessage;
+    if (type === "initialize-text") {
+      document.getElementById("text").value = event.data.pluginMessage.text;
+    }
+    if (type === "update-suggestions") {
+      const { suggestions } = event.data.pluginMessage;
+      const generateButton = document.getElementById("generate");
+      generateButton.disabled = false;
+      generateButton.innerText = "Replace";
+      generateButton.dataset.type = "replace";
+      const suggestionsContainer = document.getElementById("suggestions");
+      suggestionsContainer.innerHTML = `
+        <label for="suggestion">Generated Text</label>
+        ${suggestions
+          .map(
+            (suggestion, index) =>
+              `<button class="suggestion" ${
+                index === 0 ? "data-selected=true" : ""
+              } id="suggestion-${index}" onclick="selectSuggestion(${index})">${suggestion}</button>`
+          )
+          .join("")}
+      `;
+    }
   };
 </script>
